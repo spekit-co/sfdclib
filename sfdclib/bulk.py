@@ -64,14 +64,15 @@ class SfdcBulkApi:
     def _add_batch(self, job_id, data):
         """ Add batch to job """
         url = self._session.construct_url(self._get_api_uri() + "/job/{0}/batch".format(job_id))
-        res = self._session.post(url, headers=self._get_headers('text/csv'), data=data.encode('utf-8'))
+        res = self._session.post(url, headers=self._get_headers(), data=data.encode('utf-8'))
 
         if res.status_code != 201:
             raise Exception(
                 "Request failed with %d code and error [%s]" %
                 (res.status_code, res.text))
 
-        return ET.fromstring(res.text).find('asyncapi:id', self._XML_NAMESPACES).text
+        return json.loads(res.text)["id"]
+        # return ET.fromstring(res.text).find('asyncapi:id', self._XML_NAMESPACES).text
 
     def _get_batch_state(self, job_id, batch_id):
         """ Get batch's state """
@@ -83,17 +84,13 @@ class SfdcBulkApi:
                 "Request failed with %d code and error [%s]" %
                 (res.status_code, res.text))
 
-        batches = ET.fromstring(res.text).findall('asyncapi:batchInfo', self._XML_NAMESPACES)
+        batches = json.loads(res.text)["batchInfo"]
         for batch in batches:
-            if batch_id == batch.find('asyncapi:id', self._XML_NAMESPACES).text:
-                state = batch.find('asyncapi:state', self._XML_NAMESPACES).text
-                message = batch.find('asyncapi:stateMessage', self._XML_NAMESPACES)
-                processed_count = batch.find('asyncapi:numberRecordsProcessed', self._XML_NAMESPACES).text
-                failed_count = batch.find('asyncapi:numberRecordsFailed', self._XML_NAMESPACES).text
-                if message is not None:
-                    message = message.text
-                else:
-                    message = None
+            if batch_id == batch["id"]:
+                state = batch["state"]
+                message = batch["stateMessage"]
+                processed_count = batch["numberRecordsProcessed"]
+                failed_count = batch["numberRecordsFailed"]
                 return {
                     'state': state,
                     'message': message,
@@ -117,7 +114,7 @@ class SfdcBulkApi:
         if is_single_job:
             return res.text
 
-        result_id = ET.fromstring(res.text).find('asyncapi:result', self._XML_NAMESPACES).text
+        result_id = json.loads(res.text)[0]
 
         # Download CSV
         url = self._session.construct_url(
@@ -134,14 +131,20 @@ class SfdcBulkApi:
     def export_object(self, object_name, query=None):
         return self.export(object_name, query)
 
-    def export(self, object_name, query=None):
+    def export(self, object_name, query=None, content_type="application/json"):
         """ Exports data of specified object
             If query is not passed only Id field will be exported """
         if query is None:
             query = "SELECT Id FROM {0}".format(object_name)
 
+        job_content_type = "CSV"
+        if content_type == "application/json":
+            job_content_type = "JSON"
+        elif content_type == "application/xml":
+            job_content_type = "XML"
+
         # Create async job and add query batch
-        job_id = self._create_job('query', object_name, 'CSV')
+        job_id = self._create_job('query', object_name, job_content_type)
         batch_id = self._add_batch(job_id, query)
         self._close_job(job_id)
 
