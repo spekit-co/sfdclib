@@ -10,6 +10,8 @@ class SfdcRestApi:
     """ Class to work with Salesforce REST API """
     _API_BASE_URI = "/services/data/v{version}"
     _SOQL_QUERY_URI = "/query/?{query}"
+    _RECORD_COUNT_URI_ALL = "/limits/recordCount"
+    _RECORD_COUNT_URI_FILTERED = "/limits/recordCount?{query}"
 
     def __init__(self, session):
         if not session.is_connected():
@@ -59,6 +61,25 @@ class SfdcRestApi:
     def soql_query(self, query):
         """ SOQL query """
         res = self.get(self._SOQL_QUERY_URI.format(**{'query': urlencode({'q': query})}))
+        if not isinstance(res, dict):
+            raise Exception("Request failed. Response: %s" % res)
+        return res
+
+    def get_object_count(self, objects=None):
+        """Lists information about object record counts in your organization.
+
+        :param objects: (optional) An array of sSobject names to look up.
+        Defaults to None (which results in counts for all objects)
+        """
+        if float(self._session.get_api_version()) < 40.0:
+            raise Exception("The record count query is only available in REST API version 40.0 or later")
+        uri = self._RECORD_COUNT_URI_ALL
+        if objects:
+            objects = ",".join(objects)
+            uri = self._RECORD_COUNT_URI_FILTERED.format(
+                query=urlencode({"sObjects": objects})
+            )
+        res = self.get(uri)
         if not isinstance(res, dict):
             raise Exception("Request failed. Response: %s" % res)
         return res
