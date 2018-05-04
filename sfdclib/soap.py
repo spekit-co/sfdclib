@@ -48,5 +48,4 @@ class SfdcSoapApi(object):
                 "Request failed with %d code and error [%s]" %
                 (res.status_code, res.text))
 
-        root = ET.fromstring(res.text)
-        return root
+        return res.text
