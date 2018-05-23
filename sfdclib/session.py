@@ -38,6 +38,7 @@ xmlns:env='http://schemas.xmlsoap.org/soap/envelope/'>
         self._api_version = api_version
         self._session_id = kwargs.get("session_id", None)
         self._instance = kwargs.get("instance", None)
+        self._server_url = kwargs.get("server_url", None)
 
     def login(self):
         url = self.construct_url(self.get_soap_api_uri())
@@ -54,9 +55,11 @@ xmlns:env='http://schemas.xmlsoap.org/soap/envelope/'>
                 root.find('soapenv:Body/soapenv:Fault/faultstring', SfdcSession._XML_NAMESPACES).text))
         self._session_id = root.find('soapenv:Body/d:loginResponse/d:result/d:sessionId', SfdcSession._XML_NAMESPACES).text
         server_url = root.find('soapenv:Body/d:loginResponse/d:result/d:serverUrl', SfdcSession._XML_NAMESPACES).text
-        self._instance = re.search("""https://(.*).salesforce.com/.*""", server_url).group(1)
+        self._instance = re.search("""https://(.*).[salesforce|cloudforce].com/.*""", server_url).group(1)
 
     def get_server_url(self):
+        if self._server_url:
+            return self._server_url
         if not self._instance:
             return SfdcSession._LOGIN_URL.format(**{'instance': 'test' if self._is_sandbox else 'login'})
         return SfdcSession._LOGIN_URL.format(**{'instance': self._instance})
