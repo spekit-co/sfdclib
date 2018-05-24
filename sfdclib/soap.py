@@ -57,9 +57,9 @@ class SfdcSoapApi(object):
             'sessionId': self._session.get_session_id(),
             'majorNumber': version_string.split(".")[0],
             'minorNumber': version_string.split(".")[1],
-            'sobjects': [
+            'sobjects': "".join([
                 "<urn:sObjectType>{name}</urn:sObjectType>".format(name=name) for name in sobject_names
-            ]
+            ])
         }
 
         request = msg.DESCRIBE_SOBJECTS_MSG.format(**attributes)
