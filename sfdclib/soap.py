@@ -57,7 +57,7 @@ class SfdcSoapApi(object):
             'sessionId': self._session.get_session_id(),
             'majorNumber': version_string.split(".")[0],
             'minorNumber': version_string.split(".")[1],
-            'sobjectNames': [
+            'sobjects': [
                 f"<urn:sObjectType>{name}</urn:sObjectType>" for name in sobject_names
             ]
         }
