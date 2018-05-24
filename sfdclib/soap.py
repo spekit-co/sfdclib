@@ -1,9 +1,6 @@
 """Class to work with the Salesforce SOAP API.
 """
 
-from base64 import b64encode, b64decode
-from xml.etree import ElementTree as ET
-
 import sfdclib.messages as msg
 
 
@@ -28,7 +25,7 @@ class SfdcSoapApi(object):
             self._SOAP_API_BASE_URI.format(**{'version': self._session.get_api_version()}))
 
     def describe_sobject_type(self, sobject_name):
-        """Gets details for an object through the describeSObjec SOAP API.
+        """Gets details for an object through the describeSObject SOAP API.
 
         :param sobject_name: The name of the object
         """
@@ -42,6 +39,31 @@ class SfdcSoapApi(object):
 
         request = msg.DESCRIBE_SOBJECT_MSG.format(**attributes)
         headers = {'Content-type': 'text/xml', 'SOAPAction': 'describeSObject'}
+        res = self._session.post(self._get_api_url(), headers=headers, data=request)
+        if res.status_code != 200:
+            raise Exception(
+                "Request failed with %d code and error [%s]" %
+                (res.status_code, res.text))
+
+        return res.text
+
+    def describe_sobjects_type(self, sobject_names):
+        """Gets details for given objects through the describeSObjects SOAP API.
+
+        :param sobject_names: List of object names
+        """
+        version_string = str(self._session.get_api_version())
+        attributes = {
+            'sessionId': self._session.get_session_id(),
+            'majorNumber': version_string.split(".")[0],
+            'minorNumber': version_string.split(".")[1],
+            'sobjectNames': [
+                f"<urn:sObjectType>{name}</urn:sObjectType>" for name in sobject_names
+            ]
+        }
+
+        request = msg.DESCRIBE_SOBJECTS_MSG.format(**attributes)
+        headers = {'Content-type': 'text/xml', 'SOAPAction': 'describeSObjects'}
         res = self._session.post(self._get_api_url(), headers=headers, data=request)
         if res.status_code != 200:
             raise Exception(

@@ -153,3 +153,22 @@ DESCRIBE_SOBJECT_MSG = """
    </soapenv:Body>
 </soapenv:Envelope>
 """
+
+DESCRIBE_SOBJECTS_MSG = """
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:enterprise.soap.sforce.com">
+   <soapenv:Header>>
+      <urn:PackageVersionHeader>
+         <urn:packageVersions>
+            <urn:majorNumber>{majorNumber}</urn:majorNumber>
+            <urn:minorNumber>{minorNumber}</urn:minorNumber>
+         </urn:packageVersions>
+      </urn:PackageVersionHeader>
+      <urn:SessionHeader>
+         <urn:sessionId>{sessionId}</urn:sessionId>
+      </urn:SessionHeader>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:describeSObjects>{sobjects}</urn:describeSObjects>
+   </soapenv:Body>
+</soapenv:Envelope>
+"""
