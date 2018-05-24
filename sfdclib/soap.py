@@ -58,7 +58,7 @@ class SfdcSoapApi(object):
             'majorNumber': version_string.split(".")[0],
             'minorNumber': version_string.split(".")[1],
             'sobjects': [
-                f"<urn:sObjectType>{name}</urn:sObjectType>" for name in sobject_names
+                "<urn:sObjectType>{name}</urn:sObjectType>".format(name=name) for name in sobject_names
             ]
         }
 
