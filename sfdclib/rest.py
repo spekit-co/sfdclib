@@ -61,8 +61,8 @@ class SfdcRestApi:
     def soql_query(self, query):
         """ SOQL query """
         res = self.get(self._SOQL_QUERY_URI.format(**{'query': urlencode({'q': query})}))
-        if not isinstance(res, dict):
-            raise Exception("Request failed. Response: %s" % res)
+        # if not isinstance(res, dict):
+        #     raise Exception("Request failed. Response: %s" % res)
         return res
 
     def get_object_count(self, objects=None):
