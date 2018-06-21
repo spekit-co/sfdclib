@@ -59,6 +59,6 @@ class SfdcToolingApi():
     def anon_query(self, query):
         ''' Anonymous query '''
         res = self.get(self._ANON_QUERY_URI.format(**{'query': urlencode({'q': query})}))
-        if not isinstance(res, dict):
-            raise Exception("Request failed. Response: %s" % res)
+        # if not isinstance(res, dict):
+        #     raise Exception("Request failed. Response: %s" % res)
         return res
