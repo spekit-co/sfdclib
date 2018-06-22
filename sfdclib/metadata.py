@@ -350,7 +350,7 @@ class SfdcMetadataApi:
                 "file_name": file_name.text if file_name is not None else "",
                 "xml_name": xml_name.text if xml_name is not None else "",
             }
-            if last_modified and len(last_modified.text) > 0:
-                temp["last_modified"] = datetime.strptime(last_modified.text, "%Y-%m-%dT%H:%M:%S")
+            if last_modified is not None and len(last_modified.text) > 0:
+                temp["last_modified"] = datetime.strptime(last_modified.text, "%Y-%m-%dT%H:%M:%S.%fZ")
             metadata_objects_list.append(temp)
         return metadata_objects_list
