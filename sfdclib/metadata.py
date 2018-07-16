@@ -2,7 +2,9 @@
 from datetime import datetime
 from base64 import b64encode, b64decode
 from xml.etree import ElementTree as ET
+from xml.etree.ElementTree import XMLParser
 
+from sfdclib import util
 import sfdclib.messages as msg
 
 
@@ -354,3 +356,66 @@ class SfdcMetadataApi:
                 temp["last_modified"] = datetime.strptime(last_modified.text, "%Y-%m-%dT%H:%M:%S.%fZ")
             metadata_objects_list.append(temp)
         return metadata_objects_list
+
+    def read_custom_object_translation(self, object_name, language_code):
+        """Uses the `readMetadata` API to get translations for the given object.
+        """
+        attributes = {
+            'client': 'Metahelper',
+            'sessionId': self._session.get_session_id(),
+            'apiName': object_name,
+            'isoCode': language_code
+        }
+
+        request = msg.READ_METADATA_MSG.format(**attributes)
+
+        headers = {'Content-type': 'text/xml', 'SOAPAction': 'readMetadata'}
+        res = self._session.post(self._get_api_url(), headers=headers, data=request)
+        print(res.text)
+        if res.status_code != 200:
+            raise Exception(
+                "Request failed with %d code and error [%s]" %
+                (res.status_code, res.text))
+
+        root = ET.fromstring(
+            res.text, parser=XMLParser(target=util.CommentedTreeBuilder())
+        )
+        field_translations = root.find(
+            'soapenv:Body/mt:readMetadataResponse/mt:result/mt:records',
+            self._XML_NAMESPACES)
+        if field_translations is None:
+            raise Exception("Result node could not be found: %s" % res.text)
+        translations = {}
+        for field in field_translations:
+            name = field.find('mt:name', self._XML_NAMESPACES)
+            if name is None:
+                continue
+            name = name.text.strip()
+            label = field.find('mt:label', self._XML_NAMESPACES)
+            comment = None
+            for x in label.getchildren():
+                comment = x.text.strip()
+                break
+            translations[name] = {
+                "translation": comment
+            }
+            picklist_values = field.findall('mt:picklistValues', self._XML_NAMESPACES)
+            if picklist_values is None or picklist_values == []:
+                continue
+            values = {}
+
+            for picklist_value in picklist_values:
+                master_label = picklist_value.find('mt:masterLabel', self._XML_NAMESPACES)
+                if master_label is None:
+                    continue
+                translation = picklist_value.find('mt:translation', self._XML_NAMESPACES)
+                comment = None
+                for x in translation.getchildren():
+                    comment = x.text.strip()
+                    break
+                values[master_label.text.strip()] = {
+                    "translation": comment
+                }
+            translations[name]["picklist_values"] = values
+
+        return translations

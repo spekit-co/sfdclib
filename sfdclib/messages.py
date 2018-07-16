@@ -172,3 +172,22 @@ DESCRIBE_SOBJECTS_MSG = """
    </soapenv:Body>
 </soapenv:Envelope>
 """
+
+READ_METADATA_MSG = """
+<soapenv:Envelope xmlns:met="http://soap.sforce.com/2006/04/metadata" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+  <soapenv:Header>
+    <met:CallOptions>
+      <met:client>{client}</met:client>
+    </met:CallOptions>
+    <met:SessionHeader>
+      <met:sessionId>{sessionId}</met:sessionId>
+    </met:SessionHeader>
+  </soapenv:Header>
+  <soapenv:Body>
+    <met:readMetadata>
+      <met:type>CustomObjectTranslation</met:type>
+      <met:fullNames>{apiName}-{isoCode}</met:fullNames>
+    </met:readMetadata>
+  </soapenv:Body>
+</soapenv:Envelope>
+"""
