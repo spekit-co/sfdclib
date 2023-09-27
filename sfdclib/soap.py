@@ -2,7 +2,7 @@
 """
 
 import sfdclib.messages as msg
-
+TIMEOUT=30
 
 class SfdcSoapApi(object):
     """Class to work with the Salesforce SOAP API.
@@ -39,7 +39,7 @@ class SfdcSoapApi(object):
 
         request = msg.DESCRIBE_SOBJECT_MSG.format(**attributes)
         headers = {'Content-type': 'text/xml', 'SOAPAction': 'describeSObject'}
-        res = self._session.post(self._get_api_url(), headers=headers, data=request)
+        res = self._session.post(self._get_api_url(), headers=headers, data=request, timeout=TIMEOUT)
         if res.status_code != 200:
             raise Exception(
                 "Request failed with %d code and error [%s]" %
@@ -64,7 +64,7 @@ class SfdcSoapApi(object):
 
         request = msg.DESCRIBE_SOBJECTS_MSG.format(**attributes)
         headers = {'Content-type': 'text/xml', 'SOAPAction': 'describeSObjects'}
-        res = self._session.post(self._get_api_url(), headers=headers, data=request)
+        res = self._session.post(self._get_api_url(), headers=headers, data=request, timeout=TIMEOUT)
         if res.status_code != 200:
             raise Exception(
                 "Request failed with %d code and error [%s]" %
